@@ -1,4 +1,5 @@
 # lispy
+from collections.abc import Hashable
 
 instruction = [
     'do',
@@ -9,24 +10,36 @@ instruction = [
             'y': 2
         },
     ],
-    ['rotate', [
-        'draw_line',
-        {
-            'x': 0,
-            'y': 0
-        },
-        {
-            'x': 1,
-            'y': 1
-        },
-        'blue',
-    ]],
+    [
+        'def', 'shape',
+        [
+            'draw_line',
+            {
+                'x': 0,
+                'y': 0
+            },
+            {
+                'x': 1,
+                'y': 1
+            },
+            'blue',
+        ]
+    ],
+    ['rotate', 'shape'],
 ]
+
+# Support definitions
+variables = {}
 
 
 def do(*args):
     # hmmm
     return args
+
+
+def _def(name, v):
+    global variables
+    variables[name] = v
 
 
 def draw_point(a):
@@ -45,6 +58,7 @@ def rotate(line):
 
 functions = {
     'do': do,
+    'def': _def,
     'draw_point': draw_point,
     'draw_line': draw_line,
     'rotate': rotate
@@ -53,9 +67,14 @@ functions = {
 
 def parse_instruction(ins):
     print('parsing ' + str(ins))
-    if not isinstance(ins, list):
+    # First check if ins is a variable
+    if isinstance(ins, Hashable) and ins in variables:
+        return variables[ins]
+
+    elif not isinstance(ins, list):
         # must be an argument... so args must not be lists?
         return ins
+
     else:
         fname, *args = ins
         print(fname)
